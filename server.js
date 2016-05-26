@@ -6,8 +6,11 @@ const _ = require('underscore');
 const cookie = require('cookie');
 const url = require('url');
 
+var L01 = require('./data/l01');
+var R01 = require('./data/r01');
+
 var staticDir = '.',
-	port = 3250,
+	port = 8090,
 	app = connect(),
 	users = {},
 	log = [],
@@ -23,12 +26,15 @@ app
 	var urlParts = url.parse(req.url, true);
 	var query = urlParts.query;
 
-	console.log(param.sid, issetSid(param.sid));
+	// console.log(param.sid, issetSid(param.sid));
+
+	res.setHeader('Access-Control-Allow-Origin', 'http://fms.ingram.pilgrimconsulting.com');
+	res.setHeader('Access-Control-Allow-Credentials', true);
 
 	if(/^\/j_stat/.test(req.url)) {
 
 		if(param.sid && issetSid(param.sid)) {
-			res.end('{"stat": 1, "login": "' + getUserBySid(param.sid).login + '"}');
+			res.end('{"stat": 1, "login": "' + getUserBySid(param.sid).login + '", "token": "'+param.sid+'"}');
 		} else {
 			res.end('{"stat": 0}');
 		}
@@ -73,7 +79,7 @@ app
 			res.end('{"stat": 0}');
 		}
 
-		return;
+		// return;
 	} else if(/^\/j_online/.test(req.url)) {
 
 		if(param.sid && issetSid(param.sid)) {
@@ -88,8 +94,21 @@ app
 			res.end('{"stat": 0}');
 		}
 
+	} else if(/^\/j_get_fleets/.test(req.url)) {
+
+			res.end(JSON.stringify({L01: L01, R01: R01}));
+
+	} else if(/^\/j_signout/.test(req.url)) {
+		res.setHeader("Set-Cookie", ['sid=""']);
+		// console.log(req.url);
+		res.end(JSON.stringify({stat: 1}));
+
+		dsconnUser(param.sid);
+
 	} else {
+
 		res.end('{"stat": 0, "err": "not allowed"}');
+
 	}
 
 });
@@ -153,8 +172,14 @@ wsServer.on('request', function(request) {
 
 			if(user) {
 				var login = user.login;
+				var data = {};
 
-				var data = JSON.parse(message.utf8Data);
+				try {
+					data = JSON.parse(message.utf8Data);
+				} catch(e) {
+					console.log(e.message);
+				};
+
 
 				console.log(data);
 
@@ -170,7 +195,7 @@ wsServer.on('request', function(request) {
 
 					console.log('has', this.guid);
 
-          brodcast(pack, this.guid);
+          broadcast(pack, this.guid);
 				}
 
 			} else {
@@ -194,7 +219,7 @@ wsServer.on('request', function(request) {
     });
 });
 
-function brodcast(msg, self) {
+function broadcast(msg, self) {
 	_.each(pullConnects, function(user, n) {
 		// себе не шлем;
 		if(user.guid != self) user.conn.sendUTF(msg);
