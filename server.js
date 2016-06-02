@@ -5,13 +5,23 @@ const WebSocketServer = require('websocket').server;
 const _ = require('underscore');
 const cookie = require('cookie');
 const url = require('url');
+const LOCAL = !(process.env.NODE_ENV === 'STAGE');
+
+
+console.log('LOCAL', LOCAL, process.env.NODE_ENV);
+
+var apiURL = 'http://fms.ingram.pilgrimconsulting.com:8090';
+
+if(LOCAL) {
+	apiURL = 'http://0.0.0.0:8080';
+}
 
 var L01 = require('./data/l01');
 var R01 = require('./data/r01');
 
 var staticDir = '.',
-	port = 8090,
 	app = connect(),
+	port = 8090,
 	users = {},
 	log = [],
 	pullConnects = [];
@@ -28,7 +38,7 @@ app
 
 	// console.log(param.sid, issetSid(param.sid));
 
-	res.setHeader('Access-Control-Allow-Origin', 'http://fms.ingram.pilgrimconsulting.com');
+	res.setHeader('Access-Control-Allow-Origin', apiURL);
 	res.setHeader('Access-Control-Allow-Credentials', true);
 
 	if(/^\/j_stat/.test(req.url)) {
