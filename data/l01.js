@@ -17,8 +17,8 @@ module.exports = [
             1
          ],
          "fasility":"LMR 100",
+         
          "top":5,
-         "left":5,
          "column":1
       }
    },

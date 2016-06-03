@@ -17,9 +17,9 @@ module.exports = [
             6
          ],
          "fasility":"LMR 100",
+
          "top":5,
-         "left":5,
-         "column":6
+         "column":1
       }
    },
    {
@@ -41,8 +41,7 @@ module.exports = [
          ],
          "fasility":"LM 15",
          "top":170,
-         "left":5,
-         "column":6
+         "column":1
       }
    },
    {
@@ -65,7 +64,7 @@ module.exports = [
          "fasility":"LM 15",
          "top":335,
          "left":5,
-         "column":6
+         "column":1
       }
    },
    {
@@ -88,7 +87,7 @@ module.exports = [
          "fasility":"LM 15",
          "top":470,
          "left":5,
-         "column":6
+         "column":1
       }
    },
    {
@@ -111,7 +110,7 @@ module.exports = [
          "fasility":"LM 15",
          "top":5,
          "left":105,
-         "column":4
+         "column":2
       }
    },
    {
@@ -134,7 +133,7 @@ module.exports = [
          "fasility":"LM 15",
          "top":5,
          "left":200,
-         "column":5
+         "column":3
       }
    }
 ]
