@@ -10,7 +10,7 @@ const LOCAL = !(process.env.NODE_ENV === 'STAGE');
 
 console.log('LOCAL', LOCAL, process.env.NODE_ENV);
 
-var apiURL = 'http://0.0.0.0:8080';
+var apiURL = 'http://fms.ingram.pilgrimconsulting.com';
 
 if(LOCAL) {
 	apiURL = 'http://0.0.0.0:8080';
@@ -21,7 +21,7 @@ var R01 = require('./data/r01');
 
 var staticDir = '.',
 	app = connect(),
-	port = 8090,
+	port = 80,
 	users = {},
 	log = [],
 	pullConnects = [];
@@ -41,7 +41,7 @@ app
 	res.setHeader('Access-Control-Allow-Origin', apiURL);
 	res.setHeader('Access-Control-Allow-Credentials', true);
 
-	if(/^\/ws\/j_stat/.test(req.url)) {
+	if(/^\/j_stat/.test(req.url)) {
 
 		if(param.sid && issetSid(param.sid)) {
 			res.end('{"stat": 1, "login": "' + getUserBySid(param.sid).login + '", "token": "'+param.sid+'"}');
@@ -50,7 +50,7 @@ app
 		}
 
 
-	} else if(/^\/ws\/j_create/.test(req.url)) {
+	} else if(/^\/j_create/.test(req.url)) {
 
 		if(req.method !== 'GET') {
 			res.end('{"stat": 0, "err": "allow only GET method"}');
@@ -82,7 +82,7 @@ app
 		} else {
 			res.end('{"stat": 0, "err": "empty login param"}');
 		}
-	} else if(/^\/ws\/j_log/.test(req.url)) {
+	} else if(/^\/j_log/.test(req.url)) {
 		if(param.sid && issetSid(param.sid)) {
 			res.end(JSON.stringify(log));
 		} else {
@@ -90,7 +90,7 @@ app
 		}
 
 		// return;
-	} else if(/^\/ws\/j_online/.test(req.url)) {
+	} else if(/^\/j_online/.test(req.url)) {
 
 		if(param.sid && issetSid(param.sid)) {
 			var online = _.map(pullConnects, function(el,n) {
@@ -104,11 +104,11 @@ app
 			res.end('{"stat": 0}');
 		}
 
-	} else if(/^\/ws\/j_get_fleets/.test(req.url)) {
+	} else if(/^\/j_get_fleets/.test(req.url)) {
 
 			res.end(JSON.stringify({L01: L01, R01: R01}));
 
-	} else if(/^\/ws\/j_signout/.test(req.url)) {
+	} else if(/^\/j_signout/.test(req.url)) {
 		res.setHeader("Set-Cookie", ['sid=""']);
 		// console.log(req.url);
 		res.end(JSON.stringify({stat: 1}));
