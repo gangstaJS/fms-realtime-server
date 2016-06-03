@@ -10,7 +10,7 @@ const LOCAL = !(process.env.NODE_ENV === 'STAGE');
 
 console.log('LOCAL', LOCAL, process.env.NODE_ENV);
 
-var apiURL = 'http://fms.ingram.pilgrimconsulting.com';
+var apiURL = 'http://0.0.0.0:8080';
 
 if(LOCAL) {
 	apiURL = 'http://0.0.0.0:8080';
