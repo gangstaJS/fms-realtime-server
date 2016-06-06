@@ -13,7 +13,7 @@ console.log('LOCAL', LOCAL, process.env.NODE_ENV);
 var apiURL = 'http://fms.ingram.pilgrimconsulting.com';
 
 if(LOCAL) {
-	apiURL = 'http://0.0.0.0:8080';
+	apiURL = 'http://0.0.0.0:8090';
 }
 
 var L01 = require('./data/l01');
@@ -21,7 +21,7 @@ var R01 = require('./data/r01');
 
 var staticDir = '.',
 	app = connect(),
-	port = 80,
+	port = 8090,
 	users = {},
 	log = [],
 	pullConnects = [];
@@ -38,10 +38,12 @@ app
 
 	// console.log(param.sid, issetSid(param.sid));
 
-	res.setHeader('Access-Control-Allow-Origin', apiURL);
-	res.setHeader('Access-Control-Allow-Credentials', true);
+	console.log(req.url);
 
-	if(/^\/j_stat/.test(req.url)) {
+	// res.setHeader('Access-Control-Allow-Origin', apiURL);
+	// res.setHeader('Access-Control-Allow-Credentials', true);
+
+	if(/^\/api\/v1\/j_stat/.test(req.url)) {
 
 		if(param.sid && issetSid(param.sid)) {
 			res.end('{"stat": 1, "login": "' + getUserBySid(param.sid).login + '", "token": "'+param.sid+'"}');
@@ -50,7 +52,7 @@ app
 		}
 
 
-	} else if(/^\/j_create/.test(req.url)) {
+	} else if(/^\/api\/v1\/j_create/.test(req.url)) {
 
 		if(req.method !== 'GET') {
 			res.end('{"stat": 0, "err": "allow only GET method"}');
@@ -76,13 +78,13 @@ app
 
 			users[sid] = {login: login, date: (new Date()).getTime()}
 
-			res.setHeader("Set-Cookie", ['sid='+sid]);
+			res.setHeader("Set-Cookie", ['sid='+sid+';path=/;']);
 
 			res.end('{"stat": 1, "sid": "'+ sid +'"}');
 		} else {
 			res.end('{"stat": 0, "err": "empty login param"}');
 		}
-	} else if(/^\/j_log/.test(req.url)) {
+	} else if(/^\/api\/v1\/j_log/.test(req.url)) {
 		if(param.sid && issetSid(param.sid)) {
 			res.end(JSON.stringify(log));
 		} else {
@@ -90,7 +92,7 @@ app
 		}
 
 		// return;
-	} else if(/^\/j_online/.test(req.url)) {
+	} else if(/^\/api\/v1\/j_online/.test(req.url)) {
 
 		if(param.sid && issetSid(param.sid)) {
 			var online = _.map(pullConnects, function(el,n) {
@@ -104,11 +106,11 @@ app
 			res.end('{"stat": 0}');
 		}
 
-	} else if(/^\/j_get_fleets/.test(req.url)) {
+	} else if(/^\/api\/v1\/j_get_fleets/.test(req.url)) {
 
 			res.end(JSON.stringify({L01: L01, R01: R01}));
 
-	} else if(/^\/j_signout/.test(req.url)) {
+	} else if(/^\/api\/v1\/j_signout/.test(req.url)) {
 		res.setHeader("Set-Cookie", ['sid=""']);
 		// console.log(req.url);
 		res.end(JSON.stringify({stat: 1}));
