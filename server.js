@@ -157,6 +157,7 @@ wsServer.on('request', function(request) {
 		var user = getUserBySid(sid);
 
 		if(user) {
+			console.log('request.origin', request.origin);
 			var connection = request.accept('fms', request.origin);
 			var guid = generateGuid();
 			connection.guid = guid;
