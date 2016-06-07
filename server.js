@@ -13,7 +13,7 @@ console.log('LOCAL', LOCAL, process.env.NODE_ENV);
 var apiURL = 'http://fms.ingram.pilgrimconsulting.com';
 
 if(LOCAL) {
-	apiURL = 'http://0.0.0.0:8090';
+	apiURL = 'http://0.0.0.0:8080';
 }
 
 var L01 = require('./data/l01');
@@ -38,10 +38,10 @@ app
 
 	// console.log(param.sid, issetSid(param.sid));
 
-	console.log(req.url);
+	// console.log(req.url);
 
-	// res.setHeader('Access-Control-Allow-Origin', apiURL);
-	// res.setHeader('Access-Control-Allow-Credentials', true);
+	res.setHeader('Access-Control-Allow-Origin', apiURL);
+	res.setHeader('Access-Control-Allow-Credentials', true);
 
 	if(/^\/api\/v1\/j_stat/.test(req.url)) {
 
@@ -78,7 +78,9 @@ app
 
 			users[sid] = {login: login, date: (new Date()).getTime()}
 
+
 			res.setHeader("Set-Cookie", ['sid='+sid+';path=/;']);
+
 
 			res.end('{"stat": 1, "sid": "'+ sid +'"}');
 		} else {
@@ -167,7 +169,6 @@ wsServer.on('request', function(request) {
 			console.log('Conected: ' +  guid);
 		} else {
 			console.log('Can not get user'.red.bold);
-			// не залогиненый нигер пытается создать сокет, не принимаем его
 			return;
 		}
 
