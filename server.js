@@ -1,4 +1,4 @@
-const connect = require('connect');
+const express = require('express');
 const serveStatic = require('serve-static');
 const colors = require('colors');
 const WebSocketServer = require('websocket').server;
@@ -16,50 +16,30 @@ if(LOCAL) {
 	apiURL = 'http://0.0.0.0:8080';
 }
 
-var L01 = require('./data/l01');
-var R01 = require('./data/r01');
-
 var staticDir = '.',
-	app = connect(),
+	app = express(),
 	port = 8090,
 	users = {},
 	log = [],
-	pullConnects = [];
+	pullConnects = [],
+	apiPATH = '/api/v1/';
 
 app
 .use(serveStatic(staticDir))
-.use(function(req,res) {
 
-	var c = req.headers.cookie || '';
-	var param = cookie.parse(c);
-
-	var urlParts = url.parse(req.url, true);
-	var query = urlParts.query;
-
-	// console.log(param.sid, issetSid(param.sid));
-
-	// console.log(req.url);
-
-	res.setHeader('Access-Control-Allow-Origin', apiURL);
+// enable CORS
+.use(function(req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', apiURL);
 	res.setHeader('Access-Control-Allow-Credentials', true);
+	next();
+})
 
-	if(/^\/api\/v1\/j_stat/.test(req.url)) {
-
-		if(param.sid && issetSid(param.sid)) {
-			res.end('{"stat": 1, "login": "' + getUserBySid(param.sid).login + '", "token": "'+param.sid+'"}');
-		} else {
-			res.end('{"stat": 0}');
-		}
-
-
-	} else if(/^\/api\/v1\/j_create/.test(req.url)) {
-
-		if(req.method !== 'GET') {
-			res.end('{"stat": 0, "err": "allow only GET method"}');
-			return;
-		}
-
+.get(`${apiPATH}j_create`, function(req, res, next) {
+		var query = req.query;
+		var c = req.headers.cookie || '';
+		var param = cookie.parse(c);
 		var login = query.login || '';
+
 		login = login.trim();
 		if(login.length) {
 			var user = getUser(login);
@@ -75,58 +55,63 @@ app
 			}
 
 			var sid = generateGuid();
-
 			users[sid] = {login: login, date: (new Date()).getTime()}
-
-
 			res.setHeader("Set-Cookie", ['sid='+sid+';path=/;']);
-
 
 			res.end('{"stat": 1, "sid": "'+ sid +'"}');
 		} else {
 			res.end('{"stat": 0, "err": "empty login param"}');
 		}
-	} else if(/^\/api\/v1\/j_log/.test(req.url)) {
-		if(param.sid && issetSid(param.sid)) {
-			res.end(JSON.stringify(log));
-		} else {
-			res.end('{"stat": 0}');
-		}
+	
+})
 
-		// return;
-	} else if(/^\/api\/v1\/j_online/.test(req.url)) {
+.use(function(req, res, next) {
 
-		if(param.sid && issetSid(param.sid)) {
-			var online = _.map(pullConnects, function(el,n) {
-				return el.user;
-			});
+	var c = req.headers.cookie || '';
+	var param = cookie.parse(c);
 
-			online = _.uniq(online);
-
-			res.end(JSON.stringify({stat: 1, online: online}));
-		} else {
-			res.end('{"stat": 0}');
-		}
-
-	} else if(/^\/api\/v1\/j_get_fleets/.test(req.url)) {
-
-			res.end(JSON.stringify({L01: L01, R01: R01}));
-
-	} else if(/^\/api\/v1\/j_signout/.test(req.url)) {
-		res.setHeader("Set-Cookie", ['sid=""']);
-		// console.log(req.url);
-		res.end(JSON.stringify({stat: 1}));
-
-		dsconnUser(param.sid);
-
+	if(param.sid && issetSid(param.sid)) {
+		next();
 	} else {
+		res.end('{"stat": 0}');
+	}
+})
 
-		res.end('{"stat": 0, "err": "not allowed"}');
+.use(`${apiPATH}fleet/:fleetId`, function(req,res) {
+	var fleetId = req.params.fleetId || '';
+	var allowFleets = ['f1', 'f2', 'f3', 'f4'];
 
+	if(_.contains(allowFleets, fleetId)) {
+		res.end(JSON.stringify({stat: 1, fleet: require(`./data/${req.params.fleetId}`)}));
+	} else {
+		res.end(JSON.stringify({stat: 0, err: 'fleet not found'}));
+	}
+	
+})
+
+.use(`${apiPATH}j_stat`, function(req,res) {
+	var c = req.headers.cookie || '';
+	var param = cookie.parse(c);
+
+	var usr = {
+		stat: 1,
+		login: getUserBySid(param.sid).login,
+		token: param.sid,
 	}
 
-});
+	res.end(JSON.stringify(usr));
+})
 
+.use(`${apiPATH}j_signout`, function(req,res) {
+	res.setHeader("Set-Cookie", ['sid="";path=/;']);
+	res.end(JSON.stringify({stat: 1}));
+
+	dsconnUser(param.sid);
+})
+
+.use(`${apiPATH}j_get_fleets`, function(req,res) {
+	res.end(JSON.stringify({L01: require('./data/f1'), R01: require('./data/f2')}));
+});
 
 // I am so sorry for this func
 process.on('uncaughtException', function(err) {
